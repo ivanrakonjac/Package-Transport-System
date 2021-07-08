@@ -10,7 +10,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-//import rs.etf.sab.*;
+import rs.etf.sab.operations.*;
 
 
 
@@ -54,28 +54,11 @@ public class StudentMain {
 
     public static void main(String[] args) {
         
-        ispisiGradove();
+        //ispisiGradove();
         
-        /*CityOperations cityOperations = new ba170390_CityOperations(); 
-        DistrictOperations districtOperations = new ba170390_DistrictOperations(); 
-        CourierOperations courierOperations = new ba170390_CourierOperations(); 
-        CourierRequestOperation courierRequestOperation = new ba170390_CourierRequestOperation();
-        GeneralOperations generalOperations = new ba170390_GeneralOperations();
-        UserOperations userOperations = new ba170390_UserOperations();
-        VehicleOperations vehicleOperations = new ba170390_VehicleOperations();
-        PackageOperations packageOperations = new ba170390_PackageOperations();
-
-        TestHandler.createInstance(
-                cityOperations,
-                courierOperations,
-                courierRequestOperation,
-                districtOperations,
-                generalOperations,
-                userOperations,
-                vehicleOperations,
-                packageOperations);
-
-        TestRunner.runTests();*/
+        CityOperations cityOperations = new ri170656_CityOperations(); 
+        
+        System.out.println(cityOperations.deleteCity(4));
     }
     
   
