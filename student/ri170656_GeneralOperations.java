@@ -5,6 +5,7 @@
  */
 package student;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -22,21 +23,14 @@ public class ri170656_GeneralOperations implements GeneralOperations{
     public void eraseAll() {
         
         Connection conn=DB.getInstance().getConnection();
-        String [] names = {"TransportOffer", "CourierRequest", "Package", "Admin", "Courier", "User", "Vehicle", "District", "City"}; 
-       
-        try {
-            
-            for(int i = 0; i < names.length; i++){
-                String query="delete from [";
-                String name = names[i];
-                query += name;
-                query += "]";
-                PreparedStatement stmt=conn.prepareStatement(query);
-                stmt.executeUpdate();
-                stmt.close();
-            }
-
-        } catch (SQLException ex) {}
+        
+        String query = "{call sp_emptyDB}";
+        try (CallableStatement statement = conn.prepareCall(query)) {
+            statement.execute();
+        } catch (SQLException e) {
+            // e.printStackTrace();
+            System.err.println(e.getMessage());
+        }
     }
     
 }

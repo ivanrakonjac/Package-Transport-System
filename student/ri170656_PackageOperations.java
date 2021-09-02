@@ -73,7 +73,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 id = rs.getInt(1);
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return id;
     }
@@ -96,7 +98,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 status = rs.getInt(1);
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         if(status != 0){
             return -1;
@@ -115,7 +119,9 @@ public class ri170656_PackageOperations implements PackageOperations{
             if(rs.next()){
                 id = rs.getInt(1);
             }
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return id;
             
@@ -159,7 +165,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 
             //offers for this package will be deleted by trigger TR_TransportOffer_DeleteOffersForPackage
 
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return success ;
     }
@@ -178,7 +186,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 listOfOffers.add(rs.getInt(1));
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return listOfOffers;
     }
@@ -203,7 +213,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 listOfOffers.add(pair);
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return listOfOffers;
     }
@@ -225,7 +237,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 success = true;
             } 
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return success ;
     }
@@ -248,7 +262,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 success = true;
             }
                 
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return success ;
     }
@@ -275,7 +291,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 success = true;
             }
                 
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return success ;
         
@@ -301,7 +319,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 return null;
             }
                 
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return deliveryStatus ;
         
@@ -362,7 +382,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 return null;
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return acceptanceTime;
         
@@ -385,7 +407,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 packagesList.add(rs.getInt(1));
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         
         return packagesList;
@@ -408,7 +432,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 packagesList.add(rs.getInt(1));
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         return packagesList;
         
@@ -430,7 +456,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 list.add(rs.getInt(1));
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return list;
     }
@@ -523,7 +551,9 @@ public class ri170656_PackageOperations implements PackageOperations{
             
             distance = euclideanDistance(x1, y1, x2, y2);
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return distance;
     }
@@ -555,7 +585,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 return null;
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return packagePrice;
     }
@@ -578,7 +610,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 return -1;
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         return courierStatus;
     }
@@ -598,14 +632,16 @@ public class ri170656_PackageOperations implements PackageOperations{
             
             //ako je voznja pocela status ide u 2
             String changePackageStatusQuery=    
-                    "ALTER TABLE Package DISABLE TRIGGER [TR_TransportOffer_DeleteAllOffersForPackage]\n" +
+                    "ALTER TABLE Package DISABLE TRIGGER [TR_TransportOffer_DeleteAllOffersForPackage2]\n" +
                     "update Package set DeliveryStatus=2 where CourierUserName=?\n" +
-                    "ALTER TABLE Package ENABLE TRIGGER [TR_TransportOffer_DeleteAllOffersForPackage]";
+                    "ALTER TABLE Package ENABLE TRIGGER [TR_TransportOffer_DeleteAllOffersForPackage2]";
   
             try (PreparedStatement stmt1=conn.prepareStatement(changePackageStatusQuery);){
                 stmt1.setString(1, courierUserName);
                 stmt1.executeUpdate();          
-            } catch (SQLException ex) {}
+            } catch (SQLException ex) {
+                Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+            }
             
         }
         
@@ -623,7 +659,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 return -1;
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return firstPckgId;
     }
@@ -651,7 +689,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 return false;
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
            
         if(vehicleTaken > 0){
             success = false;
@@ -672,7 +712,9 @@ public class ri170656_PackageOperations implements PackageOperations{
             
             return success;
         
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         
         
@@ -698,7 +740,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 return "";
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return plateNumber;
     }
@@ -713,7 +757,9 @@ public class ri170656_PackageOperations implements PackageOperations{
            stmt1.setInt(1, idPackage);
            stmt1.executeUpdate(); 
            
-       } catch (SQLException ex) {}
+       } catch (SQLException ex) {
+           Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+       }
     }
     
     public void updateCourierAfterDelivery(String courierUserName, int idPackage){
@@ -731,7 +777,9 @@ public class ri170656_PackageOperations implements PackageOperations{
             stmt.setString(2, courierUserName);
             stmt.executeUpdate();  
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     //gledam cenu isporuke pa odbijem koliko ga kosta voznja
@@ -788,7 +836,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 return null;
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
       
         String plateNumber = getCourierVehicle(courierUserName);
@@ -810,7 +860,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 return null;
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         int fuelPricePerL = getFuelPricePerL(fuelType);
         
@@ -846,7 +898,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 return null;
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         String getCordsQuery="select xCord, yCord from District where IdDistrict=?";
         try (PreparedStatement stmt1=conn.prepareStatement(getCordsQuery);){
@@ -863,7 +917,9 @@ public class ri170656_PackageOperations implements PackageOperations{
                 return districtCords;
             }
             
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return districtCords;
     }
@@ -893,7 +949,9 @@ public class ri170656_PackageOperations implements PackageOperations{
             stmt1.setString(1, courierUserName);
             stmt1.executeUpdate();          
         
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            Logger.getLogger(ri170656_PackageOperations.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
     }
     

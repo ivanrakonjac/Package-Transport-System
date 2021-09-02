@@ -20,7 +20,7 @@ import rs.etf.sab.operations.DistrictOperations;
 public class ri170656_DistrictOperations implements DistrictOperations {
 
     @Override
-    public int insertDistrict(String name, int xCord, int yCord, int IdCity) {
+    public int insertDistrict(String name, int IdCity, int xCord, int yCord) {
         
          int id = -1;
         
@@ -38,7 +38,7 @@ public class ri170656_DistrictOperations implements DistrictOperations {
                 id = rs.getInt(1);
             }
         } catch (SQLException ex) {
-           
+            ex.printStackTrace();
         }
         return id;
     }
@@ -61,7 +61,7 @@ public class ri170656_DistrictOperations implements DistrictOperations {
             }
 
         } catch (SQLException ex) {
-            
+            ex.printStackTrace();
         }
         
         return numOfDeleted;    
@@ -81,7 +81,7 @@ public class ri170656_DistrictOperations implements DistrictOperations {
                 success = true;
             }
         } catch (SQLException ex) {
-            
+            ex.printStackTrace();
         }
         return success;
     }
@@ -103,7 +103,7 @@ public class ri170656_DistrictOperations implements DistrictOperations {
             numOfDeleted = numOfDeleted + stmt.executeUpdate();
 
         } catch (SQLException ex) {
-            
+            ex.printStackTrace();
         }
         
         return numOfDeleted;
@@ -124,7 +124,7 @@ public class ri170656_DistrictOperations implements DistrictOperations {
                 districtsList.add(rs.getInt(1));
             }
         } catch (SQLException ex) {
-            
+            ex.printStackTrace();
         }
         
         if(districtsList.size() > 0)
@@ -146,7 +146,7 @@ public class ri170656_DistrictOperations implements DistrictOperations {
                 districtsList.add(rs.getInt(1));
             }
         } catch (SQLException ex) {
-            
+            ex.printStackTrace();
         }
         
         return districtsList;
