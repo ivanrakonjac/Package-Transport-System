@@ -51,8 +51,7 @@ public class ri170656_CityOperations implements CityOperations{
         String query="delete from City where Name=?";
         
         try (PreparedStatement stmt=conn.prepareStatement(query);){
-            for(int i = 0; i < names.length; i++){
-                String name = names[i];
+            for (String name : names) {
                 stmt.setString(1, name);
                 numOfDeleted = numOfDeleted + stmt.executeUpdate();
             }

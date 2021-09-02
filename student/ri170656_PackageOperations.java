@@ -15,6 +15,7 @@ import java.util.List;
 import rs.etf.sab.operations.PackageOperations;
 import java.sql.CallableStatement;
 import java.sql.Date;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,6 +24,8 @@ import java.util.logging.Logger;
  * @author Ika
  */
 public class ri170656_PackageOperations implements PackageOperations{
+    
+    private static HashMap<String, ri170656_Pair<Integer, Integer>> lastVisitedPlaces = new HashMap<>();
     
     public static class ri170656_Pair<T, X> implements Pair{
         private final T i;
@@ -433,8 +436,37 @@ public class ri170656_PackageOperations implements PackageOperations{
     }
 
     @Override
-    public int driveNextPackage(String string) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public int driveNextPackage(String courierUserName) {
+        final int NO_PACKAGES = -1;
+        final int CAN_NOT_START = -2;
+        
+        int isDeliveryStarted = getCourierStatus(courierUserName);
+               
+        int firstPckgId = sortAndGetFirstPackagesId(courierUserName, isDeliveryStarted);
+        
+        /*
+        * ako je firstPckgId==-1 => nema paketa
+        * firstPckgId==-2 => ne moze se zapoceti voznja
+        * firstPckgId>0 => ide dostava
+        */
+        if(firstPckgId > 0){ 
+            
+            deliverPackage(firstPckgId);
+            updateCourierAfterDelivery(courierUserName, firstPckgId);
+            return firstPckgId;
+            
+        }else if(firstPckgId == -1){
+            
+            stopDelivery(courierUserName);
+            return NO_PACKAGES;
+        
+        }else if(firstPckgId == -2){ 
+            
+            return CAN_NOT_START;
+            
+        }
+        
+        return CAN_NOT_START;
     }
     
     private double euclideanDistance(final int x1, final int y1, final int x2, final int y2) {
@@ -526,6 +558,343 @@ public class ri170656_PackageOperations implements PackageOperations{
         } catch (SQLException ex) {}
         
         return packagePrice;
+    }
+    
+    public int getCourierStatus(String courierUserName){
+        
+        int courierStatus = -1;
+        
+        Connection conn=DB.getInstance().getConnection();
+        String query="select Status from Courier where CourierUserName=?";
+        
+        try (PreparedStatement stmt=conn.prepareStatement(query);){
+            
+            stmt.setString(1, courierUserName);
+            ResultSet rs = stmt.executeQuery();
+            
+            if(rs.next()){
+                courierStatus = rs.getInt("Status");
+            }else{
+                return -1;
+            }
+            
+        } catch (SQLException ex) {}
+
+        return courierStatus;
+    }
+    
+    public int sortAndGetFirstPackagesId(String courierUserName, int isDeliveryStarted){
+        
+        int firstPckgId = -1;
+             
+        Connection conn=DB.getInstance().getConnection();
+        
+        if(isDeliveryStarted == 0){      
+            
+            //pokusavam da zapocnem voznju, true->voznja pocinje; false->nije moguce
+            if(!startDeliveryForCourier(courierUserName)){
+                return -2;
+            }
+            
+            //ako je voznja pocela status ide u 2
+            String changePackageStatusQuery=    
+                    "ALTER TABLE Package DISABLE TRIGGER [TR_TransportOffer_DeleteAllOffersForPackage]\n" +
+                    "update Package set DeliveryStatus=2 where CourierUserName=?\n" +
+                    "ALTER TABLE Package ENABLE TRIGGER [TR_TransportOffer_DeleteAllOffersForPackage]";
+  
+            try (PreparedStatement stmt1=conn.prepareStatement(changePackageStatusQuery);){
+                stmt1.setString(1, courierUserName);
+                stmt1.executeUpdate();          
+            } catch (SQLException ex) {}
+            
+        }
+        
+        
+        String getPckgsQuery="select IdPackage from Package where DeliveryStatus=2 and CourierUserName=? order by AcceptReqTime asc";
+        
+        try (PreparedStatement stmt=conn.prepareStatement(getPckgsQuery);){
+            
+            stmt.setString(1, courierUserName);
+            ResultSet rs = stmt.executeQuery();
+            
+            if(rs.next()){
+                firstPckgId = rs.getInt(1);
+            }else{
+                return -1;
+            }
+            
+        } catch (SQLException ex) {}
+        
+        return firstPckgId;
+    }
+    
+    public boolean startDeliveryForCourier(String courierUserName){
+        
+        boolean success = false;
+        
+        Connection conn=DB.getInstance().getConnection();
+        
+        //gledam da neko slucajno nije uzeo kola
+        String courierLicencePlate = getCourierVehicle(courierUserName);
+        int vehicleTaken = 0;
+        
+        String vehicleTakenCheckQuery="select count(CourierUserName) as VehicleTaken from Courier where Status=1 and PlateNumber=?";
+        
+        try (PreparedStatement stmt=conn.prepareStatement(vehicleTakenCheckQuery);){
+            
+            stmt.setString(1, courierLicencePlate);
+            ResultSet rs = stmt.executeQuery();
+            
+            if(rs.next()){
+                vehicleTaken = rs.getInt("VehicleTaken");
+            }else{
+                return false;
+            }
+            
+        } catch (SQLException ex) {}
+           
+        if(vehicleTaken > 0){
+            success = false;
+            return success;
+        }
+        
+        String startDeliveryQuery="update Courier set Status=1, Profit=? where CourierUserName=?";
+        
+        try (PreparedStatement stmt1=conn.prepareStatement(startDeliveryQuery);){
+            
+            stmt1.setBigDecimal(1, BigDecimal.ZERO);
+            stmt1.setString(2, courierUserName);
+            stmt1.executeUpdate();     
+            
+            success = true;
+            
+            lastVisitedPlaces.put(courierUserName, new ri170656_Pair<>(-1, -1));
+            
+            return success;
+        
+        } catch (SQLException ex) {}
+        
+        
+        
+        return success;
+    }
+    
+    public String getCourierVehicle(String courierUserName){
+        
+        String plateNumber = "";
+        
+        Connection conn=DB.getInstance().getConnection();
+        
+        String query="select PlateNumber from Courier where CourierUsername=?";
+        
+        try (PreparedStatement stmt=conn.prepareStatement(query);){
+            
+            stmt.setString(1, courierUserName);
+            ResultSet rs = stmt.executeQuery();
+            
+            if(rs.next()){
+                plateNumber = rs.getString("PlateNumber");
+            }else{
+                return "";
+            }
+            
+        } catch (SQLException ex) {}
+        
+        return plateNumber;
+    }
+    
+    public void deliverPackage(int idPackage){
+        
+       Connection conn=DB.getInstance().getConnection();
+       String query1="update Package set DeliveryStatus=3 where IdPackage=?";
+       
+       try (PreparedStatement stmt1=conn.prepareStatement(query1);){
+           
+           stmt1.setInt(1, idPackage);
+           stmt1.executeUpdate(); 
+           
+       } catch (SQLException ex) {}
+    }
+    
+    public void updateCourierAfterDelivery(String courierUserName, int idPackage){
+          
+        BigDecimal profit = calculateProfitForPackage(courierUserName, idPackage);  
+
+        Connection conn=DB.getInstance().getConnection();
+        String query="update Courier\n" +
+                    "set NumOfDeliveredPackgs=NumOfDeliveredPackgs+1, Profit=Profit+?\n" +
+                    "where CourierUserName=?";
+        
+        try (PreparedStatement stmt=conn.prepareStatement(query);){
+            
+            stmt.setBigDecimal(1, profit);
+            stmt.setString(2, courierUserName);
+            stmt.executeUpdate();  
+            
+        } catch (SQLException ex) {}
+    }
+    
+    //gledam cenu isporuke pa odbijem koliko ga kosta voznja
+    public BigDecimal calculateProfitForPackage(String courierUserName, int idPackage){ 
+        
+        int xStart = -1, yStart = -1;
+        int xMiddle = -1, yMiddle = -1;
+        int xEnd = -1, yEnd = -1;
+        
+        ri170656_Pair<Integer, Integer> xyCords = lastVisitedPlaces.get(courierUserName);
+        
+        if((int)xyCords.getFirstParam() == -1 && (int)xyCords.getSecondParam() == -1){
+            //tek krenuo, start->districtFrom, end->districtTo
+            xStart = (int)getDistrictCords(idPackage, "from").getFirstParam();
+            yStart = (int)getDistrictCords(idPackage, "from").getSecondParam();
+            xEnd = (int)getDistrictCords(idPackage, "to").getFirstParam();
+            yEnd = (int)getDistrictCords(idPackage, "to").getSecondParam();
+            
+        }else{
+            //bio negde, start-> iz hashmap-e, end-> mesto from, pa mesto to
+            xStart = (int)xyCords.getFirstParam();
+            yStart = (int)xyCords.getSecondParam();
+            xMiddle = (int)getDistrictCords(idPackage, "from").getFirstParam();
+            yMiddle = (int)getDistrictCords(idPackage, "from").getSecondParam();
+            xEnd = (int)getDistrictCords(idPackage, "to").getFirstParam();
+            yEnd = (int)getDistrictCords(idPackage, "to").getSecondParam();          
+        }
+        
+        //mesto TO je poslednje mesto koje je obisao, pa ga dodajemo
+        lastVisitedPlaces.put(courierUserName, new ri170656_Pair<Integer, Integer>(xEnd, yEnd));
+        
+        double distance = 0;
+        if(xMiddle== -1 && yMiddle == -1){
+            //nema middle, samo od start do end
+            distance += euclideanDistance(xStart, yStart, xEnd, yEnd);
+        }else{
+            distance += euclideanDistance(xStart, yStart, xMiddle, yMiddle);
+            distance += euclideanDistance(xMiddle, yMiddle, xEnd, yEnd);
+        }
+        
+        //treba nam cena paketa
+        BigDecimal packagePrice = BigDecimal.ZERO;
+        Connection conn=DB.getInstance().getConnection();
+        
+        String getPackagePriceQuery="select Price from Package where IdPackage=?";
+        try (PreparedStatement stmt=conn.prepareStatement(getPackagePriceQuery);){
+            
+            stmt.setInt(1, idPackage);
+            ResultSet rs = stmt.executeQuery();
+            
+            if(rs.next()){
+                packagePrice = rs.getBigDecimal("Price");
+            }else{
+                return null;
+            }
+            
+        } catch (SQLException ex) {}
+        
+      
+        String plateNumber = getCourierVehicle(courierUserName);
+        
+
+        BigDecimal fuelConsumption = BigDecimal.ZERO;
+        int fuelType = -1;
+        
+        String query1="select FuelConsumption, FuelType from Vehicle where PlateNumber=?";
+        try (PreparedStatement stmt1=conn.prepareStatement(query1);){
+            
+            stmt1.setString(1, plateNumber);
+            ResultSet rs1 = stmt1.executeQuery();     
+            
+            if(rs1.next()){
+                fuelConsumption = rs1.getBigDecimal("FuelConsumption");
+                fuelType = rs1.getInt("FuelType"); 
+            }else{
+                return null;
+            }
+            
+        } catch (SQLException ex) {}
+        
+        int fuelPricePerL = getFuelPricePerL(fuelType);
+        
+        BigDecimal fuelCharge = ((BigDecimal.valueOf(distance)).multiply(fuelConsumption)).multiply(BigDecimal.valueOf(fuelPricePerL));
+         BigDecimal profit = packagePrice.subtract(fuelCharge);
+         
+        return profit;
+    }
+    
+    public ri170656_Pair<Integer, Integer> getDistrictCords(int idPackage, String direction){
+        
+        ri170656_Pair<Integer, Integer> districtCords = null;
+        
+        int IdDistrict = -1;
+        String directionColumn = "";
+        int xCord = -1, yCord = -1;
+        
+        switch(direction){
+            case "from" -> directionColumn = "DistrictFrom";
+            case "to" -> directionColumn = "DistrictTo";
+        }
+        
+        Connection conn=DB.getInstance().getConnection();
+        String getDistrictsQuery="select DistrictFrom, DistrictTo from Package where IdPackage=?";
+        
+        try (PreparedStatement stmt=conn.prepareStatement(getDistrictsQuery);){
+            
+            stmt.setInt(1, idPackage);
+            ResultSet rs = stmt.executeQuery();
+            if(rs.next()){
+                IdDistrict = rs.getInt(directionColumn);
+            }else{
+                return null;
+            }
+            
+        } catch (SQLException ex) {}
+        
+        String getCordsQuery="select xCord, yCord from District where IdDistrict=?";
+        try (PreparedStatement stmt1=conn.prepareStatement(getCordsQuery);){
+            
+            stmt1.setInt(1, IdDistrict);
+            ResultSet rs1 = stmt1.executeQuery();    
+            if(rs1.next()){
+                
+                xCord = rs1.getInt("xCord");
+                yCord = rs1.getInt("yCord");
+                
+                districtCords = new ri170656_Pair<>(xCord, yCord);
+                
+                return districtCords;
+            }
+            
+        } catch (SQLException ex) {}
+        
+        return districtCords;
+    }
+    
+    public int getFuelPricePerL(int fuelType){
+        int fuelPrice = 0;
+        
+        switch(fuelType){
+            case 0 -> fuelPrice = 15;
+            case 1 -> fuelPrice = 32;
+            case 2 -> fuelPrice = 36;
+        }
+        
+        return fuelPrice;
+    }
+    
+    public void stopDelivery(String courierUserName){
+        
+        Connection conn = DB.getInstance().getConnection();
+        
+        String stopDeliveryQuery=   "update Courier\n" +
+                                    "set Status=0\n" +
+                                    "where CourierUserName=?";
+        
+        try (PreparedStatement stmt1=conn.prepareStatement(stopDeliveryQuery);){
+            
+            stmt1.setString(1, courierUserName);
+            stmt1.executeUpdate();          
+        
+        } catch (SQLException ex) {}
+        
     }
     
 }
