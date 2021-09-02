@@ -632,9 +632,9 @@ public class ri170656_PackageOperations implements PackageOperations{
             
             //ako je voznja pocela status ide u 2
             String changePackageStatusQuery=    
-                    "ALTER TABLE Package DISABLE TRIGGER [TR_TransportOffer_DeleteAllOffersForPackage2]\n" +
+                    "ALTER TABLE Package DISABLE TRIGGER [TR_TransportOffer_DeleteAllOffersForPackage]\n" +
                     "update Package set DeliveryStatus=2 where CourierUserName=?\n" +
-                    "ALTER TABLE Package ENABLE TRIGGER [TR_TransportOffer_DeleteAllOffersForPackage2]";
+                    "ALTER TABLE Package ENABLE TRIGGER [TR_TransportOffer_DeleteAllOffersForPackage]";
   
             try (PreparedStatement stmt1=conn.prepareStatement(changePackageStatusQuery);){
                 stmt1.setString(1, courierUserName);
